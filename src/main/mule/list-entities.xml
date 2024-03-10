@@ -12,7 +12,7 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 	
 	<flow name="ms-business-central-to-salesforce-example-mule4Flow" doc:id="39c352d5-3b98-418d-8518-1b5cd2ff2f20" >
 		<http:listener doc:name="/list" doc:id="06338cbf-3dc2-482e-b60d-4c159b827023" config-ref="HTTPS_Listener_config" path="/list" />
-		<dynamics365-bc:list-entities doc:name="List Entities" doc:id="e7d54a45-daa6-4cd1-9b8b-11f0c7ff8a98" config-ref="BC_Config" companyId="c381e6b6-b3d3-ee11-904f-6045bdac9aed" entity="customers"/>
+		<dynamics365-bc:list-entities doc:name="List Entities" doc:id="e7d54a45-daa6-4cd1-9b8b-11f0c7ff8a98" config-ref="BC_Config" companyId="${api.companyId}" entity="customers"/>
 		<ee:transform doc:name="Transform Message" doc:id="0c6309ca-ec39-4764-ace1-4648149b3dab" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
