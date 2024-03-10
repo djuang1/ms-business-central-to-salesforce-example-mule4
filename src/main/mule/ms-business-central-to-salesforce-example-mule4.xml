@@ -20,8 +20,8 @@ http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mu
 			<dynamics365-bc:oauth-authorization-code
 				consumerKey="${oauth.client.id}"
 				consumerSecret="${oauth.client.secret}"
-				authorizationUrl="https://login.microsoftonline.com/b3921bc3-c29d-40ea-bf61-2f1406ff0b91/oauth2/v2.0/authorize"
-				accessTokenUrl="https://login.microsoftonline.com/b3921bc3-c29d-40ea-bf61-2f1406ff0b91/oauth2/v2.0/token"
+				authorizationUrl="${oauth.authUrl}"
+				accessTokenUrl="${oauth.tokenUrl}"
 				scopes="https://api.businesscentral.dynamics.com/.default"
 				resourceOwnerId="default" />
 			<dynamics365-bc:oauth-callback-config
