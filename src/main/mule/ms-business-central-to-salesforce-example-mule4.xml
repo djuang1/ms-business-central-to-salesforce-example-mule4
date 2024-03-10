@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dynamics365-bc="http://www.mulesoft.org/schema/mule/dynamics365-bc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/dynamics365-bc http://www.mulesoft.org/schema/mule/dynamics365-bc/current/mule-dynamics365-bc.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	<dynamics365-bc:config
+		name="BC_Config"
+		doc:name="BC_Config"
+		doc:id="c00b9471-b6a9-4ee9-a936-b02a244955fe"
+		companyId="${api.companyId}">
+		<dynamics365-bc:oauth2-connection
+			baseUri="${config.baseUri}">
+			<dynamics365-bc:oauth-authorization-code
+				consumerKey="${oauth.client.id}"
+				consumerSecret="${oauth.client.secret}"
+				authorizationUrl="https://login.microsoftonline.com/b3921bc3-c29d-40ea-bf61-2f1406ff0b91/oauth2/v2.0/authorize"
+				accessTokenUrl="https://login.microsoftonline.com/b3921bc3-c29d-40ea-bf61-2f1406ff0b91/oauth2/v2.0/token"
+				scopes="https://api.businesscentral.dynamics.com/.default"
+				resourceOwnerId="default" />
+			<dynamics365-bc:oauth-callback-config
+				listenerConfig="HTTPS_Listener_config" callbackPath="/callback"
+				authorizePath="/authorize"
+				externalCallbackUrl="http://localhost:8081/callback" />
+			<dynamics365-bc:oauth-store-config
+				objectStore="Object_store" />
+		</dynamics365-bc:oauth2-connection>
+	</dynamics365-bc:config>
+	
+	<os:config name="ObjectStore_Config"
+		doc:name="ObjectStore Config"
+		doc:id="6ddf084d-adb1-4ac1-ad6b-8567f897976c">
+		<os:connection />
+	</os:config>
+	<os:object-store name="Object_store"
+		doc:name="Object store" doc:id="12e59758-fb64-4262-ad2f-e9981c943f0a"
+		config-ref="ObjectStore_Config" />
+	
+	
+	<configuration-properties doc:name="Configuration properties" doc:id="11bbb415-2785-4742-97aa-d55765ba8e53" file="mule-app.properties" />
+	<http:listener-config name="HTTPS_Listener_config" doc:name="HTTP Listener config" doc:id="4555bbc0-5d61-430a-a546-52e60e771e8d" >
+		<http:listener-connection host="0.0.0.0" port="8082" protocol="HTTPS">
+			<tls:context>
+                <tls:key-store type="jks" path="keystore.jks" alias="mule" keyPassword="password" password="password" />
+            </tls:context>
+		</http:listener-connection>
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="41ff8d63-66eb-4eda-9e21-d8ca562a4799" >
+		<salesforce:basic-connection username="${sfdc.username}" password="${sfdc.password}" />
+	</salesforce:sfdc-config>
+	<flow name="ms-business-central-to-salesforce-example-mule4Flow1" doc:id="18fdd22e-0d99-4842-855d-5ef353f88633" >
+		<dynamics365-bc:on-new-or-updated-customer-listener doc:name="On New or Updated Customer" doc:id="6fe00f0c-523a-4a86-92b4-113f4f8aa641" config-ref="BC_Config" companyId="c381e6b6-b3d3-ee11-904f-6045bdac9aed" since="2024-03-01T00:00:00.000Z">
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</dynamics365-bc:on-new-or-updated-customer-listener>
+		<ee:transform doc:name="Transform Message" doc:id="c431dcc7-d0f6-4b1e-810c-52f3227d4768" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Name: payload.displayName,
+	BillingStreet: payload.addressLine1,
+	BillingCity: payload.city,
+	BillingState: payload.state,
+	BillingPostalCode: payload.postalCode,
+	BillingCountry: payload.country,
+	Phone: payload.phoneNumber,
+	Website: payload.website,
+	External_ID__c: payload.id
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert objectType="Account" externalIdFieldName="External_ID__c" doc:name="Upsert" doc:id="7bb43202-acdf-4588-96a0-088bd5387df7" config-ref="Salesforce_Config"/>
+	</flow>
+</mule>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:dynamics365-bc="http://www.mulesoft.org/schema/mule/dynamics365-bc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/dynamics365-bc http://www.mulesoft.org/schema/mule/dynamics365-bc/current/mule-dynamics365-bc.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	
+	<flow name="ms-business-central-to-salesforce-example-mule4Flow" doc:id="39c352d5-3b98-418d-8518-1b5cd2ff2f20" >
+		<http:listener doc:name="/list" doc:id="06338cbf-3dc2-482e-b60d-4c159b827023" config-ref="HTTPS_Listener_config" path="/list" />
+		<dynamics365-bc:list-entities doc:name="List Entities" doc:id="e7d54a45-daa6-4cd1-9b8b-11f0c7ff8a98" config-ref="BC_Config" companyId="c381e6b6-b3d3-ee11-904f-6045bdac9aed" entity="customers"/>
+		<ee:transform doc:name="Transform Message" doc:id="0c6309ca-ec39-4764-ace1-4648149b3dab" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
